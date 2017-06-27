@@ -26,8 +26,11 @@ typedef struct		s_s
 	int				map_x;
 	int				map_y;
 	char 			**piece;
+	int 			piece_cord_x;
+	int 			piece_cord_y;
 	int 			piece_x;
 	int 			piece_y;
+	int 			find;
 }					t_t;
 
 void				_struct_init(t_t **s)
@@ -40,16 +43,55 @@ void				_struct_init(t_t **s)
 	(*s)->map_x = 0;
 	(*s)->map_y = 0;
 	(*s)->piece = NULL;
-	(*s)->piece_x = 0;
-	(*s)->piece_y = 0;
+	(*s)->piece_cord_x = 0;
+	(*s)->piece_cord_y = 0;
+	(*s)->piece_x = -1;
+	(*s)->piece_y = -1;
+	(*s)->find = 1;
 }
 
-int			find_coord(char *line, t_t **s)
+void		find_star(t_t *arr)
 {
-	int 	ok;
+	int 	i;
+	int 	j;
 
-	ok = 0;
+	i = 0;
+	j = 0;
+	while (1)
+	{
+		if (arr->piece[i][j] == '*')
+			break ;
+		if (arr->piece[i][j] == '.')
+			j++;
+		else
+		{
+			i++;
+			j = 0;
+		}
+	}
+	arr->piece_x = i;
+	arr->piece_y = j;
+}
 
+void 		find_cords(t_t *foo)
+{
+	int		i;
+	int		j;
+	int 	find;
+
+	i = 0;
+	find = 0;
+	while (i <= foo->piece_cord_x)
+	{
+		j = 0;
+		while (j <= foo->piece_cord_y)
+		{
+			if (foo->map[i][j] == foo->player && foo->piece[i][j] == '*')
+				foo->find = 2;
+			j++;
+		}
+		i++;
+	}
 }
 
 int			main()
@@ -94,7 +136,7 @@ int			main()
 	i = 0;
 	while (i < s->map_x)
 	{
-		s->map[i] = ft_strnew((size_t) (s->map_y + 1));
+		s->map[i] = ft_strnew((size_t)(s->map_y + 1));
 		i++;
 	}
 	get_next_line(FD, &line);
@@ -105,7 +147,7 @@ int			main()
 	while (i < s->map_x)
 	{
 		get_next_line(FD, &line);
-		ft_printf("%s\n", line);
+//		ft_printf("%s\n", line);
 		l = 0;
 		p = 4;
 		while (line[p])
@@ -116,39 +158,39 @@ int			main()
 		}
 		i++;
 	}
-	i = 0;
-	while (s->map[i])
-	{
-		ft_printf("%s\n", s->map[i]);
-		i++;
-	}
+//	i = 0;
+//	while (s->map[i])
+//	{
+//		ft_printf("%s\n", s->map[i]);
+//		i++;
+//	}
 	get_next_line(FD, &line);
 	i = 0;
 	while (line[i] && !ft_isdigit(line[i]))
 		i++;
 	while (line[i] && ft_isdigit(line[i]))
 	{
-		s->piece_x += line[i] - '0';
-		s->piece_x *= 10;
+		s->piece_cord_x += line[i] - '0';
+		s->piece_cord_x *= 10;
 		i++;
 	}
-	s->piece_x /= 10;
+	s->piece_cord_x /= 10;
 	i++;																		//skip space between x && y
 	while (line[i] && ft_isdigit(line[i]))
 	{
-		s->piece_y += line[i] - '0';
-		s->piece_y *= 10;
+		s->piece_cord_y += line[i] - '0';
+		s->piece_cord_y *= 10;
 		i++;
 	}
-	s->piece_y /= 10;
-//	ft_printf("%d, %d\n", s->piece_x, s->piece_y);
+	s->piece_cord_y /= 10;
+//	ft_printf("%d, %d\n", s->piece_cord_x, s->piece_cord_y);
 	i = 0;
-	s->piece = (char **)malloc(sizeof(char *) * (s->piece_x + 1));
-	s->piece[s->piece_x] = NULL;
-	while (i < s->piece_x)
+	s->piece = (char **)malloc(sizeof(char *) * (s->piece_cord_x + 1));
+	s->piece[s->piece_cord_x] = NULL;
+	while (i < s->piece_cord_x)
 	{
 		l = 0;
-		s->piece[i] = ft_strnew((size_t) (s->piece_y + 1));
+		s->piece[i] = ft_strnew((size_t) (s->piece_cord_y + 1));
 		get_next_line(FD, &line);
 		while (line[l])
 		{
@@ -157,45 +199,40 @@ int			main()
 		}
 		i++;
 	}
-	i = 0;
-	while (s->piece[i])
-		ft_printf("%s\n", s->piece[i++]);
-//	while (1)
-//	{
-//		if (!(find_coord(line, &s)))
-//			break ;
-//	}
+//	find_star(&s);
+//	ft_printf("%d\n", s->piece_x);
+//	ft_printf("%d\n", s->piece_y);
+	int j;
+
+	j = 0;
+	while (s->find)
+	{
+		i = 0;
+		find_star(s);
+		while (i++ < s->map_x)
+		{
+			j = 0;
+			while (s->map[i][j++] < s->map_y)
+				find_cords(s);
+			if (s->find == 2)
+			{
+				ft_printf("%d %d", i, j);
+				s->find = -1;
+			}
+		}
+	}
+//	i = 0;
+//	while (s->piece[i])
+//		ft_printf("%s\n", s->piece[i++]);
+
 //	ft_printf("\n%c %c\n", s->player, s->enemy);
 //	ft_printf("%d %d\n", s->map_y, s->map_x);
-//	ft_printf("%d %d\n", s->piece_y, s->piece_x);
+//	ft_printf("%d %d\n", s->piece_cord_y, s->piece_cord_x);
 //	ft_printf("%c\n", s->piece[0][0]);
-	return (0);
+//	return (0);
 }
-
 /*
 
-$$$ exec p2 : [./a.out]
-Plateau 15 17:
-	01234567890123456
-000 .................
-001 .................
-002 .................
-003 .................
-004 .................
-005 .................
-006 .................
-007 .................
-008 ..O..............
-009 ..OOOO.......X...
-010 ....Oo......XXX..
-011 .....o.......XX..
-012 ..............X..
-013 .................
-014 .................
-Piece 2 2:
-**
-.*
-<got (X): [8, 12]
  ===
 $$$ exec p1 : [./a.out]
 Plateau 15 17:
@@ -217,6 +254,7 @@ Plateau 15 17:
 014 .................
 Piece 1 3:
 .**
+
 $$$ exec p2 : [./a.out]
 Plateau 100 99:
     012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678
@@ -446,6 +484,38 @@ Piece 19 1:
 Piece 1 4:
 ..**
  ++
+$$$ exec p2 : [./a.out]
+Plateau 24 40:
+    0123456789012345678901234567890123456789
+000 ........................................
+001 ........................................
+002 ........................................
+003 ...o....................................
+004 ...o....................................
+005 ...o....................................
+006 ........................................
+007 ........................................
+008 ........................................
+009 ........................................
+010 ........................................
+011 ........................................
+012 ........................................
+013 ........................................
+014 ........................................
+015 ........................................
+016 ........................................
+017 ........................................
+018 ........................................
+019 ................................X.......
+020 ........................................
+021 ........................................
+022 ........................................
+023 ........................................
+Piece 4 4:
+....
+...*
+.*.*
+.***
 $$$ exec p2 : [./a.out]
 Plateau 24 40:
     0123456789012345678901234567890123456789
