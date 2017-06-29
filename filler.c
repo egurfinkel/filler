@@ -15,39 +15,56 @@
 #include "includes/get_next_line.h"
 #include "includes/ft_printf.h"
 
+// find_piece_cords() - find all possible variants of the token
+// check_bounds() - check whether the figure does not cross borders of the map
+// Check_place() -  check whether the figure fits in a map, no overlap with enemy, 1 overlap with your territory
+
 #define FD 0
 
 typedef struct		s_s
 {
 	char			player;
 	char			enemy;
-	int				brk;
+	int				touch;
 	char			**map;
 	int				map_x;
 	int				map_y;
+	int 			map_cord_x;
+	int 			map_cord_y;
 	char 			**piece;
 	int 			piece_cord_x;
 	int 			piece_cord_y;
 	int 			piece_x;
 	int 			piece_y;
 	int 			find;
+	int 			i;
+	int 			j;
+	int 			brk;
+	int 			x;
+	int 			y;
 }					t_t;
 
-void				_struct_init(t_t **s)
+void				_struct_init(t_t *s)
 {
-	(*s) = (t_t*)malloc(sizeof(t_t));
-	(*s)->player = 'X';
-	(*s)->enemy = 'O';
-	(*s)->brk = 0;
-	(*s)->map = NULL;
-	(*s)->map_x = 0;
-	(*s)->map_y = 0;
-	(*s)->piece = NULL;
-	(*s)->piece_cord_x = 0;
-	(*s)->piece_cord_y = 0;
-	(*s)->piece_x = -1;
-	(*s)->piece_y = -1;
-	(*s)->find = 1;
+	s->player = 'X';
+	s->enemy = 'O';
+	s->touch = 0;
+	s->map = NULL;
+	s->map_x = 0;
+	s->map_y = 0;
+	s->map_cord_x = 0;
+	s->map_cord_y = 0;
+	s->piece = NULL;
+	s->piece_cord_x = 0;
+	s->piece_cord_y = 0;
+	s->piece_x = -1;
+	s->piece_y = -1;
+	s->find = 1;
+	s->i = -1;
+	s->j = -1;
+	s->brk = 0;
+	s->x = 0;
+	s->y = 0;
 }
 
 void		find_star(t_t *arr)
@@ -76,22 +93,31 @@ void		find_star(t_t *arr)
 void 		find_cords(t_t *foo)
 {
 	int		i;
-	int		j;
-	int 	find;
+	int 	j;
 
-	i = 0;
-	find = 0;
-	while (i <= foo->piece_cord_x)
+	i = -1;
+	while (++i < (foo->map_x - foo->piece_x) && i < foo->piece_x)
 	{
-		j = 0;
-		while (j <= foo->piece_cord_y)
+		j = -1;
+		while (++j < (foo->map_y - foo->piece_y) && j < foo->piece_y)
 		{
-			if (foo->map[i][j] == foo->player && foo->piece[i][j] == '*')
-				foo->find = 2;
-			j++;
+
 		}
-		i++;
 	}
+//	foo->i = -1;
+//	while (++foo->i < foo->piece_cord_x && foo->touch < 2)
+//	{
+//		foo->j = -1;
+//		while (++foo->j < foo->piece_cord_y && foo->touch < 2)
+//		{
+//			if (foo->piece[foo->i][foo->j] == '*' &&
+//					(foo->map[foo->i][foo->j] == 'x' ||
+//							foo->map[foo->i][foo->j] == 'X'))
+//				foo->touch++;
+//			else if (foo->touch < 0)
+//				foo->brk++;
+//		}
+//	}
 }
 
 int			main()
@@ -99,11 +125,11 @@ int			main()
 	char *line;
 	t_t *s;
 	int i = 0;
-	int x = 0;
-	int y = 0;
 
-	_struct_init(&s);
-	line = (char *) malloc(sizeof(char) * 10000);
+	s = (t_t*)malloc(sizeof(t_t));
+	_struct_init(s);
+//	ft_printf("test");
+	line = (char *)malloc(sizeof(char) * 10000);
 	get_next_line(FD, &line);
 	if (line[10] == '1')
 	{
@@ -199,28 +225,36 @@ int			main()
 		}
 		i++;
 	}
-//	find_star(&s);
+//	find_star(s);
 //	ft_printf("%d\n", s->piece_x);
 //	ft_printf("%d\n", s->piece_y);
-	int j;
-
-	j = 0;
-	while (s->find)
+	find_star(s);
+	while (!s->brk)
 	{
-		i = 0;
-		find_star(s);
-		while (i++ < s->map_x)
+		s->x = -1;
+		while (++s->x < (s->map_x - s->piece_x))
 		{
-			j = 0;
-			while (s->map[i][j++] < s->map_y)
+			s->y = -1;
+			while (++s->y < (s->map_y - s->piece_y))
 				find_cords(s);
-			if (s->find == 2)
-			{
-				ft_printf("%d %d", i, j);
-				s->find = -1;
-			}
 		}
 	}
+//	while (!s->brk)
+//	{
+//		s->i = -1;
+//		while (++s->i < s->map_x)
+//		{
+//			s->j = -1;
+//			while (s->j < s->map_y)
+//			{
+//				s->j++;
+//				find_cords(s);
+//			}
+//			s->map_cord_y = s->j;
+//		}
+//		s->map_cord_x = i;
+//		ft_printf("%d %d\n", s->map_cord_x, s->map_cord_y);
+//	}
 //	i = 0;
 //	while (s->piece[i])
 //		ft_printf("%s\n", s->piece[i++]);
@@ -229,7 +263,7 @@ int			main()
 //	ft_printf("%d %d\n", s->map_y, s->map_x);
 //	ft_printf("%d %d\n", s->piece_cord_y, s->piece_cord_x);
 //	ft_printf("%c\n", s->piece[0][0]);
-//	return (0);
+	return (0);
 }
 /*
 
