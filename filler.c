@@ -15,9 +15,9 @@
 #include "includes/get_next_line.h"
 #include "includes/ft_printf.h"
 
-// find_piece_cords() - find all possible variants of the token
-// check_bounds() - check whether the figure does not cross borders of the map
-// Check_place() -  check whether the figure fits in a map, no overlap with enemy, 1 overlap with your territory
+// find_piece_cords()   - find all possible variants of the token
+// check_bounds()       - check whether the figure does not cross borders of the map
+// Check_place()        - check whether the figure fits in a map, no overlap with enemy, 1 overlap with your territory
 
 #define FD 0
 
@@ -42,9 +42,10 @@ typedef struct		s_s
 	int 			brk;
 	int 			x;
 	int 			y;
+    char            *line;
 }					t_t;
 
-void				_struct_init(t_t *s)
+void                first_init(t_t *s)
 {
 	s->player = 'X';
 	s->enemy = 'O';
@@ -65,45 +66,172 @@ void				_struct_init(t_t *s)
 	s->brk = 0;
 	s->x = 0;
 	s->y = 0;
+    s->line = (char *)malloc(sizeof(char) * 10000);
 }
 
-void		find_star(t_t *arr)
+void		find_star(t_t *s)
 {
 	int 	i;
 	int 	j;
 
-	i = 0;
-	j = 0;
-	while (1)
-	{
-		if (arr->piece[i][j] == '*')
-			break ;
-		if (arr->piece[i][j] == '.')
-			j++;
-		else
-		{
-			i++;
-			j = 0;
-		}
-	}
-	arr->piece_x = i;
-	arr->piece_y = j;
+    i = 0;
+    while (i < s->piece_cord_x)
+    {
+        j = 0;
+        while (j < s->piece_cord_y)
+        {
+            if (s->piece[i][j] == '*')
+            {
+                s->piece_x = i;
+                s->piece_y = j;
+                break ;
+            }
+            j++;
+        }
+        i++;
+    }
 }
 
-void 		find_cords(t_t *foo)
+void        fill_player(t_t *s)
 {
-	int		i;
-	int 	j;
+    get_next_line(FD, &s->line);
+    if (s->line[10] == '1')
+    {
+        s->player = 'O';
+        s->enemy = 'X';
+    }
+}
 
-	i = -1;
-	while (++i < (foo->map_x - foo->piece_x) && i < foo->piece_x)
-	{
-		j = -1;
-		while (++j < (foo->map_y - foo->piece_y) && j < foo->piece_y)
-		{
+void        fill_map(t_t *s)
+{
+    int i;
+    get_next_line(FD, &s->line);
+    i = 0;
+    while (!ft_isdigit(s->line[i]))
+        i++;
+    s->map_x = 0;
+    while (ft_isdigit(s->line[i]))
+    {
+        s->map_x += s->line[i] - '0';
+        s->map_x *= 10;
+        i++;
+    }
+    s->map_x /= 10;
+    i++;
+    while (ft_isdigit(s->line[i]))
+    {
+        s->map_y += s->line[i] - '0';
+        s->map_y *= 10;
+        i++;
+    }
+    s->map_y /= 10;
+    s->map = (char **)malloc(sizeof(char *) * (s->map_x + 1));
+    s->map[s->map_x] = NULL;
+    i = 0;
+    while (i < s->map_x)
+    {
+        s->map[i] = ft_strnew((size_t)(s->map_y + 1));
+        i++;
+    }
+    get_next_line(FD, &s->line);
+    i = 0;
+    int l;
+    int p;
+    while (i < s->map_x)
+    {
+        get_next_line(FD, &s->line);
+        l = 0;
+        p = 4;
+        while (s->line[p])
+        {
+            s->map[i][l] = s->line[p];
+            l++;
+            p++;
+        }
+        i++;
+    }
+}
 
-		}
-	}
+void        fill_piece(t_t *s)
+{
+    int     i;
+    int     l;
+
+    get_next_line(FD, &s->line);
+    i = 0;
+    while (s->line[i] && !ft_isdigit(s->line[i]))
+        i++;
+    while (s->line[i] && ft_isdigit(s->line[i]))
+    {
+        s->piece_cord_x += s->line[i] - '0';
+        s->piece_cord_x *= 10;
+        i++;
+    }
+    s->piece_cord_x /= 10;
+    i++;
+    while (s->line[i] && ft_isdigit(s->line[i]))
+    {
+        s->piece_cord_y += s->line[i] - '0';
+        s->piece_cord_y *= 10;
+        i++;
+    }
+    s->piece_cord_y /= 10;
+    i = 0;
+    s->piece = (char **)malloc(sizeof(char *) * (s->piece_cord_x + 1));
+    s->piece[s->piece_cord_x] = NULL;
+    while (i < s->piece_cord_x)
+    {
+        l = 0;
+        s->piece[i] = ft_strnew((size_t) (s->piece_cord_y + 1));
+        get_next_line(FD, &s->line);
+        while (s->line[l])
+        {
+            s->piece[i][l] = s->line[l];
+            l++;
+        }
+        i++;
+    }
+}
+
+void        find_coords_of_me(t_t *s)
+{
+    int     i;
+    int     j;
+
+    i = 0;
+    while (i < s->map_x)
+    {
+        j = 0;
+        while (j < s->map_y)
+        {
+            if (s->map[i][j] == s->player)
+            {
+                s->x = i;
+                s->y = j;
+                find_star(s);
+                ft_printf("%d %d", s->x - s->piece_x, s->y - s->piece_y);
+            }
+            j++;
+        }
+        i++;
+    }
+    s->brk = 1;
+}
+
+//void 		find_coords(t_t *foo)
+//{
+//	int		i;
+//	int 	j;
+//
+//	i = -1;
+//	while (++i < (foo->map_x - foo->piece_x) && i < foo->piece_x)
+//	{
+//		j = -1;
+//		while (++j < (foo->map_y - foo->piece_y) && j < foo->piece_y)
+//		{
+//
+//		}
+//	}
 //	foo->i = -1;
 //	while (++foo->i < foo->piece_cord_x && foo->touch < 2)
 //	{
@@ -118,147 +246,22 @@ void 		find_cords(t_t *foo)
 //				foo->brk++;
 //		}
 //	}
-}
+//}
 
 int			main()
 {
-	char *line;
 	t_t *s;
 	int i = 0;
 
 	s = (t_t*)malloc(sizeof(t_t));
-	_struct_init(s);
-//	ft_printf("test");
-	line = (char *)malloc(sizeof(char) * 10000);
-	get_next_line(FD, &line);
-	if (line[10] == '1')
-	{
-		s->player = 'O';
-		s->enemy = 'X';
-	}
-	get_next_line(FD, &line);
-	i = 0;
-	while (!ft_isdigit(line[i]))
-		i++;
-	s->map_x = 0;
-	while (ft_isdigit(line[i]))
-	{
-		s->map_x += line[i] - '0';
-		s->map_x *= 10;
-		i++;
-	}
-	s->map_x /= 10;
-//	ft_printf("%d\n", s->map_x);
-	i++;																		//skip space between x && y
-	while (ft_isdigit(line[i]))
-	{
-		s->map_y += line[i] - '0';
-		s->map_y *= 10;
-		i++;
-	}
-	s->map_y /= 10;
-	s->map = (char **)malloc(sizeof(char *) * (s->map_x + 1));
-	s->map[s->map_x] = NULL;
-	i = 0;
-	while (i < s->map_x)
-	{
-		s->map[i] = ft_strnew((size_t)(s->map_y + 1));
-		i++;
-	}
-	get_next_line(FD, &line);
-//	ft_printf("%s\n", line);
-	i = 0;
-	int l;
-	int p;
-	while (i < s->map_x)
-	{
-		get_next_line(FD, &line);
-//		ft_printf("%s\n", line);
-		l = 0;
-		p = 4;
-		while (line[p])
-		{
-			s->map[i][l] = line[p];
-			l++;
-			p++;
-		}
-		i++;
-	}
-//	i = 0;
-//	while (s->map[i])
-//	{
-//		ft_printf("%s\n", s->map[i]);
-//		i++;
-//	}
-	get_next_line(FD, &line);
-	i = 0;
-	while (line[i] && !ft_isdigit(line[i]))
-		i++;
-	while (line[i] && ft_isdigit(line[i]))
-	{
-		s->piece_cord_x += line[i] - '0';
-		s->piece_cord_x *= 10;
-		i++;
-	}
-	s->piece_cord_x /= 10;
-	i++;																		//skip space between x && y
-	while (line[i] && ft_isdigit(line[i]))
-	{
-		s->piece_cord_y += line[i] - '0';
-		s->piece_cord_y *= 10;
-		i++;
-	}
-	s->piece_cord_y /= 10;
-//	ft_printf("%d, %d\n", s->piece_cord_x, s->piece_cord_y);
-	i = 0;
-	s->piece = (char **)malloc(sizeof(char *) * (s->piece_cord_x + 1));
-	s->piece[s->piece_cord_x] = NULL;
-	while (i < s->piece_cord_x)
-	{
-		l = 0;
-		s->piece[i] = ft_strnew((size_t) (s->piece_cord_y + 1));
-		get_next_line(FD, &line);
-		while (line[l])
-		{
-			s->piece[i][l] = line[l];
-			l++;
-		}
-		i++;
-	}
-//	find_star(s);
-//	ft_printf("%d\n", s->piece_x);
-//	ft_printf("%d\n", s->piece_y);
-	find_star(s);
-	while (!s->brk)
-	{
-		s->x = -1;
-		while (++s->x < (s->map_x - s->piece_x))
-		{
-			s->y = -1;
-			while (++s->y < (s->map_y - s->piece_y))
-				find_cords(s);
-		}
-	}
-//	while (!s->brk)
-//	{
-//		s->i = -1;
-//		while (++s->i < s->map_x)
-//		{
-//			s->j = -1;
-//			while (s->j < s->map_y)
-//			{
-//				s->j++;
-//				find_cords(s);
-//			}
-//			s->map_cord_y = s->j;
-//		}
-//		s->map_cord_x = i;
-//		ft_printf("%d %d\n", s->map_cord_x, s->map_cord_y);
-//	}
-//	i = 0;
-//	while (s->piece[i])
-//		ft_printf("%s\n", s->piece[i++]);
-
+	first_init(s);
+    while (!s->brk)
+    {
+        fill_player(s);
+        fill_map(s);
+        fill_piece(s);
+        find_coords_of_me(s);
+    }
 //	ft_printf("\n%c %c\n", s->player, s->enemy);
 //	ft_printf("%d %d\n", s->map_y, s->map_x);
 //	ft_printf("%d %d\n", s->piece_cord_y, s->piece_cord_x);
