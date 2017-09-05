@@ -23,56 +23,59 @@
 
 typedef struct		s_s
 {
-	char			player;
-	char			enemy;
-	int				touch;
-	char			**map;
-	int				map_x;
-	int				map_y;
-	int 			map_cord_x;
-	int 			map_cord_y;
-	char 			**piece;
-	int 			piece_cord_x;
-	int 			piece_cord_y;
-	int 			piece_x;
-	int 			piece_y;
-	int 			find;
-	int 			i;
-	int 			j;
-	int 			brk;
-	int 			x;
-	int 			y;
+    char			player;
+    char			enemy;
+    int				touch;
+    char			**map;
+    int				map_x;
+    int				map_y;
+    int 			map_cord_x;
+    int 			map_cord_y;
+    char 			**piece;
+    int 			piece_cord_x;
+    int 			piece_cord_y;
+    int 			piece_x;
+    int 			piece_y;
+    int 			find;
+    int 			index;
+    int 			brk;
+    int 			x;
+    int 			y;
     char            *line;
+    int             **matrix;
+    int             enemy_x;
+    int             enemy_y;
 }					t_t;
 
 void                first_init(t_t *s)
 {
-	s->player = 'X';
-	s->enemy = 'O';
-	s->touch = 0;
-	s->map = NULL;
-	s->map_x = 0;
-	s->map_y = 0;
-	s->map_cord_x = 0;
-	s->map_cord_y = 0;
-	s->piece = NULL;
-	s->piece_cord_x = 0;
-	s->piece_cord_y = 0;
-	s->piece_x = -1;
-	s->piece_y = -1;
-	s->find = 1;
-	s->i = -1;
-	s->j = -1;
-	s->brk = 0;
-	s->x = 0;
-	s->y = 0;
+    s->player = 'X';
+    s->enemy = 'O';
+    s->touch = 0;
+    s->map = NULL;
+    s->map_x = 0;
+    s->map_y = 0;
+    s->map_cord_x = 0;
+    s->map_cord_y = 0;
+    s->piece = NULL;
+    s->piece_cord_x = 0;
+    s->piece_cord_y = 0;
+    s->piece_x = -1;
+    s->piece_y = -1;
+    s->find = 0;
+    s->index = 0;
+    s->brk = 0;
+    s->x = 0;
+    s->y = 0;
+    s->enemy_x = 0;
+    s->enemy_y = 0;
     s->line = (char *)malloc(sizeof(char) * 10000);
 }
 
 void		find_star(t_t *s)
 {
-	int 	i;
-	int 	j;
+    int 	i;
+    int 	j;
 
     i = 0;
     while (i < s->piece_cord_x)
@@ -195,78 +198,130 @@ void        fill_piece(t_t *s)
 
 void        find_coords_of_me(t_t *s)
 {
-    int     i;
-    int     j;
+    int     x;
+    int     y;
 
-    i = 0;
-    while (i < s->map_x)
+    x = 0;
+    while (x < s->map_x && !s->find)
     {
-        j = 0;
-        while (j < s->map_y)
+        y = 0;
+        while (y < s->map_y)
         {
-            if (s->map[i][j] == s->player)
+            if (s->map[x][y] == s->player && !s->find)
             {
-                s->x = i;
-                s->y = j;
+                s->x = x;
+                s->y = y;
                 find_star(s);
                 ft_printf("%d %d", s->x - s->piece_x, s->y - s->piece_y);
+                s->find = 1;
             }
-            j++;
+            y++;
         }
-        i++;
+        x++;
     }
-    s->brk = 1;
+    if (s->find)
+        s->brk = 0;
+    else
+        s->brk = 1;
 }
 
-//void 		find_coords(t_t *foo)
-//{
-//	int		i;
-//	int 	j;
-//
-//	i = -1;
-//	while (++i < (foo->map_x - foo->piece_x) && i < foo->piece_x)
-//	{
-//		j = -1;
-//		while (++j < (foo->map_y - foo->piece_y) && j < foo->piece_y)
-//		{
-//
-//		}
-//	}
-//	foo->i = -1;
-//	while (++foo->i < foo->piece_cord_x && foo->touch < 2)
-//	{
-//		foo->j = -1;
-//		while (++foo->j < foo->piece_cord_y && foo->touch < 2)
-//		{
-//			if (foo->piece[foo->i][foo->j] == '*' &&
-//					(foo->map[foo->i][foo->j] == 'x' ||
-//							foo->map[foo->i][foo->j] == 'X'))
-//				foo->touch++;
-//			else if (foo->touch < 0)
-//				foo->brk++;
-//		}
-//	}
-//}
+void        fill_next_map(t_t *s)
+{
+
+}
+
+void        fill_matrix(t_t *s)
+{
+    int     x;
+    int     y;
+
+    x = 0;
+    s->matrix = (int**)malloc(sizeof(int*) * s->map_x);
+    while (x < s->map_x)
+    {
+        s->matrix[x] = (int*)malloc(sizeof(int) * s->map_y);
+        y = 0;
+        while (y < s->map_y)
+        {
+            s->matrix[x][y] = s->index;
+            y++;
+        }
+        x++;
+    }
+}
+
+void        find_enemy(t_t *s)
+{
+    int     x;
+    int     y;
+    int     search;
+
+    x = 0;
+    search = 1;
+    while (x < s->map_x && search)
+    {
+        y = 0;
+        while (y < s->map_y && search)
+        {
+            if (s->map[x][y] == s->enemy)
+            {
+                s->enemy_x = x;
+                s->enemy_y = y;
+                search = 0;
+            }
+            y++;
+        }
+        x++;
+    }
+}
+
+void        a_star_map(t_t *s, int x, int y)
+{
+    s->index++;
+    (s->map[x][y + 1] == s->enemy) ? (s->matrix[x][y + 1] = -2) : (s->matrix[x][y + 1] = s->index);
+    (s->map[x + 1][y] == s->enemy) ? (s->matrix[x + 1][y] = -2) : (s->matrix[x + 1][y] = s->index);
+    (s->map[x + 1][y + 1] == s->enemy) ? (s->matrix[x + 1][y + 1] = -2) : (s->matrix[x + 1][y + 1] = s->index);
+    (s->map[x - 1][y] == s->enemy) ? (s->matrix[x - 1][y] = -2) : (s->matrix[x - 1][y] = s->index);
+    (s->map[x][y - 1] == s->enemy) ? (s->matrix[x][y - 1] = -2) : (s->matrix[x][y - 1] = s->index);
+    (s->map[x - 1][y - 1] == s->enemy) ? (s->matrix[x - 1][y - 1] = -2) : (s->matrix[x - 1][y - 1] = s->index);
+    (s->map[x + 1][y - 1] == s->enemy) ? (s->matrix[x + 1][y - 1] = -2) : (s->matrix[x + 1][y - 1] = s->index);
+    (s->map[x - 1][y + 1] == s->enemy) ? (s->matrix[x - 1][y + 1] = -2) : (s->matrix[x - 1][y + 1] = s->index);
+    /////////////DEBUG//////////////
+    int i = 0;
+    while (i < s->map_x)
+    {
+        int j = 0;
+        while (j < s->map_y) {
+            ft_printf("%d ", s->matrix[i][j]);
+            j++;
+        }
+        ft_printf("\n");
+        i++;
+    }
+}
 
 int			main()
 {
-	t_t *s;
-	int i = 0;
+    t_t *s;
 
-	s = (t_t*)malloc(sizeof(t_t));
-	first_init(s);
-    while (!s->brk)
+    s = (t_t*)malloc(sizeof(t_t));
+    first_init(s);
+    fill_player(s);
+    fill_map(s);
+    fill_piece(s);
+    fill_matrix(s);
+    find_enemy(s);
+    a_star_map(s, s->enemy_x, s->enemy_x);
+    find_coords_of_me(s);
+    while (get_next_line(0, &s->line))
     {
-        fill_player(s);
-        fill_map(s);
-        fill_piece(s);
-        find_coords_of_me(s);
+        fill_next_map(s);
     }
+    return (0);
 //	ft_printf("\n%c %c\n", s->player, s->enemy);
 //	ft_printf("%d %d\n", s->map_y, s->map_x);
 //	ft_printf("%d %d\n", s->piece_cord_y, s->piece_cord_x);
 //	ft_printf("%c\n", s->piece[0][0]);
-	return (0);
 }
 /*
 
@@ -286,7 +341,7 @@ Plateau 15 17:
 009 .................
 010 .................
 011 .................
-012 .............xx..
+012 .............XX..
 013 .................
 014 .................
 Piece 1 3:
