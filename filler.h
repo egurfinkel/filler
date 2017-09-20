@@ -43,7 +43,9 @@ typedef struct		s_s
 void				first_init(t_t *s);
 void				fill_player(t_t *s);
 void				fill_map(t_t *s);
+void				fill_map_2(t_t *s);
 void				fill_piece(t_t *s);
+void				fill_piece_2(t_t *s, int i);
 void				fill_arr_minus_one(t_t *s);
 void				ft_write_map_fig(t_t *s);
 int					place_figure(int x, int y, t_t *s);
