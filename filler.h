@@ -6,7 +6,7 @@
 /*   By: egurfink <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/09/20 19:02:59 by egurfink          #+#    #+#             */
-/*   Updated: 2017/09/20 19:03:01 by egurfink         ###   ########.fr       */
+/*   Updated: 2017/09/20 22:34:19 by egurfink         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 # include "includes/libft.h"
 # include "includes/get_next_line.h"
 # include "includes/ft_printf.h"
+# define FD 0
 
 typedef struct		s_s
 {
